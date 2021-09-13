@@ -53,20 +53,21 @@ int main() {
         )
     ));
     world.add(std::make_shared<sphere>(
-        point3{-1.0, 0.0, -1.0}, 0.5, std::make_shared<metal>(
-            color{0.8, 0.8, 0.8}
+        point3{-1.0, 0.0, -1.2}, 0.5, std::make_shared<metal>(
+            color{0.8, 0.8, 0.8}, 0.3
         )
     ));
     world.add(std::make_shared<sphere>(
-        point3{1.5, 0.0, -1.0}, 0.5, std::make_shared<metal>(
-            color{0.8, 0.6, 0.2}
+        point3{1.0, 0.0, -1.5}, 0.5, std::make_shared<metal>(
+            color{0.8, 0.6, 0.2}, 1.0
         )
     ));
 
     // Camera
     auto viewport_height = 2.0;
     auto viewport_width = aspect_ratio * viewport_height;
-    camera camera{viewport_height, viewport_width};
+    auto focal_length = 1.0;
+    camera camera{viewport_height, viewport_width, focal_length};
 
     // Render
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";

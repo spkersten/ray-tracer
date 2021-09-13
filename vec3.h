@@ -56,6 +56,11 @@ public:
         return vec3{random_double(min, max), random_double(min, max), random_double(min, max)};
     }
 
+    bool near_zero() const {
+        const auto s = 1e-8;
+        return fabs(x()) < s && fabs(y()) < s && fabs(z()) < s;
+    }
+
 protected:
     double e[3];
 };

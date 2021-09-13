@@ -5,6 +5,7 @@
 #include "./hittable_list.h"
 #include "./sphere.h"
 #include "./camera.h"
+#include "./lambertian.h"
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     if (depth <= 0) {
@@ -17,8 +18,12 @@ color ray_color(const ray& r, const hittable& world, int depth) {
         // Normals: 
         //return 0.5 * (rec.normal + color{1, 1, 1});
 
-        auto target = rec.p + rec.normal + random_unit_vector();
-        return color{0.5, 0.5, 0.5} * ray_color(ray{rec.p, target - rec.p}, world, depth - 1);
+        ray scattered;
+        color attenuation;
+        if (rec.material->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * ray_color(scattered, world, depth - 1);
+        }
+        return color{0, 0, 0};
     }
 
     auto unit_direction = r.direction().normalized();
@@ -36,8 +41,16 @@ int main() {
 
     // World
     hittable_list world;
-    world.add(std::make_shared<sphere>(point3(0, 0, -1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0, -100.5, -1), 100));
+    world.add(std::make_shared<sphere>(
+        point3(0, 0, -1), 0.5, std::make_shared<lambertian>(
+            color{0.7, 0.3, 0.3}
+        )
+    ));
+    world.add(std::make_shared<sphere>(
+        point3(0, -100.5, -1), 100, std::make_shared<lambertian>(
+            color{0.8, 0.8, 0.0}
+        )
+    ));
 
     // Camera
     auto viewport_height = 2.0;

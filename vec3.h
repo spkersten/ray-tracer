@@ -123,3 +123,8 @@ inline vec3 cross(const vec3 &u, const vec3 &v) {
 inline vec3 vec3::normalized() const {
     return *this / length();
 }
+
+// Reflect v in n
+vec3 reflect(const vec3& v, const vec3& n) {
+    return v - 2 * dot(v, n) * n;
+}

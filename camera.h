@@ -6,8 +6,6 @@
 class camera {
 public:
     camera(double viewport_height, double viewport_width, double focal_length) {
-        auto aspect_ratio = 16.0 / 9.0;
-
         origin = point3(0, 0, 0);
         horizontal = vec3(viewport_width, 0.0, 0.0);
         vertical = vec3(0.0, viewport_height, 0.0);

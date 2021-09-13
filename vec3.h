@@ -128,3 +128,10 @@ inline vec3 vec3::normalized() const {
 vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2 * dot(v, n) * n;
 }
+
+vec3 refract(const vec3& v, const vec3& n, double refractive_index_ratio) {
+    auto cos_theta = std::min(dot(-v, n), 1.0);
+    vec3 r_out_perpendicular = refractive_index_ratio * (v + cos_theta * n);
+    vec3 r_out_parallel = -sqrt(std::abs(1.0 - r_out_perpendicular.length_squared())) * n;
+    return r_out_perpendicular + r_out_parallel;
+}

@@ -7,6 +7,7 @@
 #include "./camera.h"
 #include "./lambertian.h"
 #include "./metal.h"
+#include "./dielectric.h"
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     if (depth <= 0) {
@@ -21,10 +22,10 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 
         ray scattered;
         color attenuation;
-        if (rec.material->scatter(r, rec, attenuation, scattered)) {
+        if (rec.material->scatter(r, rec, attenuation, scattered) || true) {
             return attenuation * ray_color(scattered, world, depth - 1);
         }
-        return color{0, 0, 0};
+        return color{1, 0, 0};
     }
 
     auto unit_direction = r.direction().normalized();
@@ -35,31 +36,36 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 int main() {
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
-    const int image_width = 400;
+    const int image_width = 500;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = 200;
     const int max_depth = 50;
 
     // World
     hittable_list world;
     world.add(std::make_shared<sphere>(
-        point3(0, -100.5, -1), 100, std::make_shared<lambertian>(
+        point3(0, -100.5, -1.2), 100, std::make_shared<lambertian>(
             color{0.8, 0.8, 0.0}
         )
     ));
     world.add(std::make_shared<sphere>(
-        point3(0, 0, -1), 0.5, std::make_shared<lambertian>(
-            color{0.7, 0.3, 0.3}
+        point3(0, 0, -1), 0.5, std::make_shared<dielectric>(
+            2.1
         )
     ));
     world.add(std::make_shared<sphere>(
-        point3{-1.0, 0.0, -1.2}, 0.5, std::make_shared<metal>(
-            color{0.8, 0.8, 0.8}, 0.3
+        point3{-1.0, 0.0, -1.0}, 0.5, std::make_shared<metal>(
+            color{0.8, 0.8, 0.85}, 0.3
         )
     ));
     world.add(std::make_shared<sphere>(
-        point3{1.0, 0.0, -1.5}, 0.5, std::make_shared<metal>(
+        point3{1.5, 0.5, -3.0}, 1.0, std::make_shared<metal>(
             color{0.8, 0.6, 0.2}, 1.0
+        )
+    ));
+    world.add(std::make_shared<sphere>(
+        point3{2.5, 0.0, -2.0}, 0.5, std::make_shared<lambertian>(
+            color{0.8, 0.2, 0.4}
         )
     ));
 

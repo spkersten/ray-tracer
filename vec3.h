@@ -71,6 +71,10 @@ vec3 random_in_unit_sphere() {
     }
 }
 
+vec3 random_unit_vector() {
+    return random_in_unit_sphere().normalized();
+}
+
 inline std::ostream& operator<<(std::ostream &out, const vec3 &v) {
     return out << v.x() << ' ' << v.y() << ' ' << v.z();
 }

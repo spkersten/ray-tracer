@@ -2,3 +2,4 @@ ray-tracer
 image.ppm
 results/
 *.dSYM
+.DS_Store

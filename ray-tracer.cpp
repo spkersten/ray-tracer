@@ -56,12 +56,19 @@ int main() {
     world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     // Camera
+    point3 lookfrom{3, 3, 2};
+    point3 lookat{0, 0, -1};
+    vec3 up{0, 1, 0};
+    auto focus_distance = (lookfrom - lookat).length();
+    auto aperture = 2.0;
     camera camera{
-        point3{-2, 2, 1},
-        point3{0, 0, -1},
-        vec3{0, 1, 0},
+        lookfrom,
+        lookat,
+        up,
         20.0,
         aspect_ratio,
+        aperture,
+        focus_distance
     };
 
     // Render

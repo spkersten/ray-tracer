@@ -36,38 +36,23 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 int main() {
     // Image
     const auto aspect_ratio = 16.0 / 9.0;
-    const int image_width = 500;
+    const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 200;
+    const int samples_per_pixel = 100;
     const int max_depth = 50;
 
     // World
     hittable_list world;
-    world.add(std::make_shared<sphere>(
-        point3(0, -100.5, -1.2), 100, std::make_shared<lambertian>(
-            color{0.8, 0.8, 0.0}
-        )
-    ));
-    world.add(std::make_shared<sphere>(
-        point3(0, 0, -1), 0.5, std::make_shared<dielectric>(
-            2.1
-        )
-    ));
-    world.add(std::make_shared<sphere>(
-        point3{-1.0, 0.0, -1.0}, 0.5, std::make_shared<metal>(
-            color{0.8, 0.8, 0.85}, 0.3
-        )
-    ));
-    world.add(std::make_shared<sphere>(
-        point3{1.5, 0.5, -3.0}, 1.0, std::make_shared<metal>(
-            color{0.8, 0.6, 0.2}, 1.0
-        )
-    ));
-    world.add(std::make_shared<sphere>(
-        point3{2.5, 0.0, -2.0}, 0.5, std::make_shared<lambertian>(
-            color{0.8, 0.2, 0.4}
-        )
-    ));
+
+    auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    auto material_left   = std::make_shared<dielectric>(1.5);
+    auto material_right  = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+
+    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     // Camera
     auto viewport_height = 2.0;

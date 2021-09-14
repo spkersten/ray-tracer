@@ -12,6 +12,7 @@ double clamp(double x, double min, double max) {
     }
 }
 
+const double pi = 3.14159265358979;
 const double infinity = std::numeric_limits<double>::infinity();
 
 double random_double() {

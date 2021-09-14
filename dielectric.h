@@ -20,7 +20,7 @@ public:
         bool total_internal_reflection = refraction_ratio * sin_theta > 1.0;
 
         vec3 direction;
-        if (total_internal_reflection) {
+        if (total_internal_reflection || reflactance(cos_theta, refraction_ratio) > random_double()) {
             direction = reflect(unit_direction, rec.normal);
         } else {
             direction = refract(unit_direction, rec.normal, refraction_ratio);
@@ -31,4 +31,12 @@ public:
     }
 
     double index_of_refraction;
+
+private:
+    static double reflactance(double cosine, double refractive_index) {
+        // Schlick's approximation
+        auto r0 = (1 - refractive_index) / (1 + refractive_index);
+        auto r0squared = r0 * r0;
+        return r0squared + (1 - r0squared) * std::pow(1 - cosine, 5);
+    }
 };

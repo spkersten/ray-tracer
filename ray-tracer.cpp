@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 
+#include "./bvh.h"
 #include "./vec3.h"
 #include "./color.h"
 #include "./hittable_list.h"
@@ -46,12 +47,12 @@ hittable_list random_scene() {
             point3 center{a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
 
             if ((center - point3{4, 0.2, 0}).length() > 0.9) {
-                if (choose_mat < 0.8) {
+                if (choose_mat < 0.75) {
                     // diffuse
                     auto albedo = color::random() * color::random();
                     auto sphere_material = std::make_shared<lambertian>(albedo);
                     world.add(std::make_shared<sphere>(center, 0.2, sphere_material));
-                } else if (choose_mat < 0.95) {
+                } else if (choose_mat < 0.9) {
                     // metal
                     auto albedo = color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
@@ -79,26 +80,35 @@ hittable_list random_scene() {
 }
 
 int main() {
+    for (int i = 0; i < 22; i++)
+        random_double();
+
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
     const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = 10;
     const int max_depth = 50;
 
     // World
     hittable_list world = random_scene();
 
-    auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
-    auto material_left   = std::make_shared<dielectric>(1.5);
-    auto material_right  = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    // auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
+    // auto material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    // auto material_left   = std::make_shared<dielectric>(1.5);
+    // auto material_right  = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
 
-    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
-    world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
-    world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
-    world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+    // world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    // world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    // world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    // world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
+    // world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+
+    bvh_node world_tree{
+        world,
+        0,
+        0,
+    };
 
     // Camera
     point3 lookfrom{13, 2, 3};
@@ -127,7 +137,7 @@ int main() {
                 auto u = (i + random_double()) / (image_width - 1);
                 auto v = (j + random_double()) / (image_height - 1);
                 auto r = camera.get_ray(u, v);
-                pixel_color += ray_color(r, world, max_depth);
+                pixel_color += ray_color(r, world_tree, max_depth);
             }
             write_color(std::cout, pixel_color, samples_per_pixel);
         }

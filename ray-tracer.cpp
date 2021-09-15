@@ -55,14 +55,12 @@ hittable_list random_scene() {
                     // diffuse
                     color albedo = color::random() * color::random();;
                     std::shared_ptr<texture> tex;
-                    if (choose_mat < 0.1) {
-                        auto white = color{0.9, 0.9, 0.9};
-                        // tex = std::make_shared<surface_checker_texture>(
-                        //     albedo,
-                        //     white,
-                        //     8.0
-                        // );
+                    if (choose_mat < 0.075) {
+                        tex = std::make_shared<image_texture>("2k_mars.jpg");
+                    } else if (choose_mat < 0.15) {
                         tex = std::make_shared<image_texture>("Blue_Marble_2002.png");
+                    } else if (choose_mat < 0.225) {
+                        tex = std::make_shared<image_texture>("2k_sun.jpg");
                     } else {
                         tex = std::make_shared<solid_color>(albedo);
                     }
@@ -135,7 +133,7 @@ int main() {
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 1200;
+    const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 100;
     const int max_depth = 50;

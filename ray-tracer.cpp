@@ -7,6 +7,7 @@
 #include "./checker_texture.h"
 #include "./hittable_list.h"
 #include "./sphere.h"
+#include "./bumpy_sphere.h"
 #include "./camera.h"
 #include "./lambertian.h"
 #include "./metal.h"
@@ -89,7 +90,10 @@ hittable_list random_scene() {
     world.add(std::make_shared<sphere>(point3{-4, 1, 0}, 1.0, material2));
 
     auto material3 = std::make_shared<metal>(color{0.7, 0.6, 0.5}, 0.0);
-    world.add(std::make_shared<sphere>(point3{4, 1, 0}, 1.0, material3));
+    world.add(std::make_shared<bumpy_sphere>(
+        point3{4, 1, 0}, 1.0, 0.2, 2,
+        material3
+    ));
 
     return world;
 }
@@ -148,7 +152,7 @@ int main() {
     const auto aspect_ratio = 3.0 / 2.0;
     const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = 20;
     const int max_depth = 50;
 
     // Camera & World
@@ -161,7 +165,7 @@ int main() {
 
     hittable_list world;
 
-    switch (3) {
+    switch (1) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};

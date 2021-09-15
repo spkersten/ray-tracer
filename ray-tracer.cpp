@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <optional>
 
 #include "./bvh.h"
 #include "./vec3.h"
@@ -14,8 +15,12 @@
 #include "./dielectric.h"
 #include "./image_texture.h"
 #include "./noise_texture.h"
+#include "./diffuse_light.h"
 
-color ray_color(const ray& r, const hittable& world, int depth) {
+color ray_color(
+    const ray& r, const hittable& world, int depth, 
+    std::optional<color> background = std::nullopt
+) {
     if (depth <= 0) {
         return color{0, 0, 0};
     }
@@ -28,15 +33,23 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 
         ray scattered;
         color attenuation;
-        if (rec.material->scatter(r, rec, attenuation, scattered)) {
-            return attenuation * ray_color(scattered, world, depth - 1);
-        }
-        return color{0, 0, 0};
-    }
+        color emitted = rec.material->emitted(rec.u, rec.v, rec.p);
 
-    auto unit_direction = r.direction().normalized();
-    auto s = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - s) * color{1.0, 1.0, 1.0} + s * color{0.5, 0.7, 1.0};
+        if (!rec.material->scatter(r, rec, attenuation, scattered)) {
+            return emitted;
+        } else {
+            return emitted + attenuation * ray_color(scattered, world, depth - 1, background);
+        }
+    } else {
+        if (background.has_value()) {
+            return background.value();
+        } else {
+            // Sky box:
+            auto unit_direction = r.direction().normalized();
+            auto s = 0.5 * (unit_direction.y() + 1.0);
+            return (1.0 - s) * color{1.0, 1.0, 1.0} + s * color{0.5, 0.7, 1.0};
+        }
+    }
 }
 
 hittable_list random_scene() {
@@ -117,6 +130,22 @@ hittable_list three_spheres() {
     return world;
 }
 
+hittable_list three_spheres_light() {
+    hittable_list world;
+
+    auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.8));
+    auto material_left = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
+    auto material_center  = std::make_shared<dielectric>(1.5);
+    auto material_right  = std::make_shared<diffuse_light>(2 * color(0.8, 0.6, 0.2));
+
+    world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+
+    return world;
+}
+
 hittable_list earth() {
     hittable_list world;
 
@@ -150,9 +179,9 @@ int main() {
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 400;
+    const int image_width = 800;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 20;
+    const int samples_per_pixel = 1000;
     const int max_depth = 50;
 
     // Camera & World
@@ -163,9 +192,11 @@ int main() {
     double aperture = 0.1;
     double vfov = 20;
 
+    std::optional<color> background;
+
     hittable_list world;
 
-    switch (3) {
+    switch (5) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -193,6 +224,15 @@ int main() {
         lookat = point3{0, 2, 0};
         vfov = 20.0;
         world = earth();
+        break;
+    case 5:
+        background = color{0, 0, 0};
+        lookfrom = point3{2, 2, 1};
+        lookat = point3{0, 0, -1};
+        focus_distance = 1.0;
+        aperture = 0.0;
+        vfov = 40;
+        world = three_spheres_light();
         break;
     }
 
@@ -223,7 +263,7 @@ int main() {
                 auto u = (i + random_double()) / (image_width - 1);
                 auto v = (j + random_double()) / (image_height - 1);
                 auto r = camera.get_ray(u, v);
-                pixel_color += ray_color(r, world_tree, max_depth);
+                pixel_color += ray_color(r, world_tree, max_depth, background);
             }
             write_color(std::cout, pixel_color, samples_per_pixel);
         }

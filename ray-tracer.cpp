@@ -135,7 +135,7 @@ hittable_list earth() {
 hittable_list two_perlin_spheres() {
     hittable_list objects;
 
-    auto pertext = std::make_shared<noise_texture>(4);
+    auto pertext = std::make_shared<turbulence_texture>(4);
     objects.add(std::make_shared<sphere>(
         point3{0, -1000, 0}, 1000, std::make_shared<lambertian>(pertext)));
     objects.add(std::make_shared<sphere>(
@@ -165,7 +165,7 @@ int main() {
 
     hittable_list world;
 
-    switch (1) {
+    switch (3) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};

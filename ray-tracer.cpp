@@ -11,6 +11,7 @@
 #include "./lambertian.h"
 #include "./metal.h"
 #include "./dielectric.h"
+#include "./image_texture.h"
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     if (depth <= 0) {
@@ -28,7 +29,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
         if (rec.material->scatter(r, rec, attenuation, scattered)) {
             return attenuation * ray_color(scattered, world, depth - 1);
         }
-        return color{1, 0, 0};
+        return color{0, 0, 0};
     }
 
     auto unit_direction = r.direction().normalized();
@@ -56,11 +57,12 @@ hittable_list random_scene() {
                     std::shared_ptr<texture> tex;
                     if (choose_mat < 0.1) {
                         auto white = color{0.9, 0.9, 0.9};
-                        tex = std::make_shared<surface_checker_texture>(
-                            albedo,
-                            white,
-                            8.0
-                        );
+                        // tex = std::make_shared<surface_checker_texture>(
+                        //     albedo,
+                        //     white,
+                        //     8.0
+                        // );
+                        tex = std::make_shared<image_texture>("Blue_Marble_2002.png");
                     } else {
                         tex = std::make_shared<solid_color>(albedo);
                     }
@@ -112,15 +114,30 @@ hittable_list three_spheres() {
     return world;
 }
 
+hittable_list earth() {
+    hittable_list world;
+
+    auto material_ground = std::make_shared<lambertian>(color{0.8, 0.8, 0.8});
+    world.add(std::make_shared<sphere>(point3{0, -100, 0}, 100.0, material_ground));
+    
+    // auto earth_texture = std::make_shared<image_texture>("earth.jpg");
+    auto earth_texture = std::make_shared<image_texture>("Blue_Marble_2002.png");
+    auto earth_surface = std::make_shared<lambertian>(earth_texture);
+    auto globe = std::make_shared<sphere>(point3{0, 2, 0}, 2, earth_surface);
+    world.add(globe);
+
+    return world;
+}
+
 int main() {
     for (int i = 0; i < 22; i++)
         random_double();
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 400;
+    const int image_width = 1200;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    const int samples_per_pixel = 100;
     const int max_depth = 50;
 
     // Camera & World
@@ -133,7 +150,7 @@ int main() {
 
     hittable_list world;
 
-    switch (0) {
+    switch (1) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -149,6 +166,13 @@ int main() {
         aperture = 0.1;
         vfov = 20;
         world = random_scene();
+        break;
+    
+    case 4:
+        lookfrom = point3{13, 3, 3};
+        lookat = point3{0, 2, 0};
+        vfov = 20.0;
+        world = earth();
         break;
     }
 

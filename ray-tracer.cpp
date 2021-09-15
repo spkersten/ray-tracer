@@ -4,6 +4,7 @@
 #include "./bvh.h"
 #include "./vec3.h"
 #include "./color.h"
+#include "./checker_texture.h"
 #include "./hittable_list.h"
 #include "./sphere.h"
 #include "./camera.h"
@@ -38,7 +39,9 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 hittable_list random_scene() {
     hittable_list world;
 
-    auto ground_material = std::make_shared<lambertian>(color(0.5, 0.5, 0.5));
+    auto checker = std::make_shared<spatial_checker_texture>(
+        color{0.2, 0.3, 0.1}, color{0.9, 0.9, 0.9}, 10);
+    auto ground_material = std::make_shared<lambertian>(checker);
     world.add(std::make_shared<sphere>(point3{0, -1000, 0}, 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {
@@ -49,8 +52,19 @@ hittable_list random_scene() {
             if ((center - point3{4, 0.2, 0}).length() > 0.9) {
                 if (choose_mat < 0.75) {
                     // diffuse
-                    auto albedo = color::random() * color::random();
-                    auto sphere_material = std::make_shared<lambertian>(albedo);
+                    color albedo = color::random() * color::random();;
+                    std::shared_ptr<texture> tex;
+                    if (choose_mat < 0.1) {
+                        auto white = color{0.9, 0.9, 0.9};
+                        tex = std::make_shared<surface_checker_texture>(
+                            albedo,
+                            white,
+                            8.0
+                        );
+                    } else {
+                        tex = std::make_shared<solid_color>(albedo);
+                    }
+                    auto sphere_material = std::make_shared<lambertian>(tex);
                     world.add(std::make_shared<sphere>(center, 0.2, sphere_material));
                 } else if (choose_mat < 0.9) {
                     // metal
@@ -87,22 +101,27 @@ int main() {
     const auto aspect_ratio = 3.0 / 2.0;
     const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    const int samples_per_pixel = 100;
     const int max_depth = 50;
 
     // World
-    hittable_list world = random_scene();
+    hittable_list world
 
-    // auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
-    // auto material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
-    // auto material_left   = std::make_shared<dielectric>(1.5);
-    // auto material_right  = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    switch (1) {
+    case 0:
+        auto material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
+        auto material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
+        auto material_left   = std::make_shared<dielectric>(1.5);
+        auto material_right  = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
 
-    // world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    // world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
-    // world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
-    // world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
-    // world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+        world.add(std::make_shared<sphere>(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+        world.add(std::make_shared<sphere>(point3( 0.0,    0.0, -1.0),   0.5, material_center));
+        world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+        world.add(std::make_shared<sphere>(point3(-1.0,    0.0, -1.0),  -0.4, material_left));
+        world.add(std::make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+    case 1:
+        world = random_scene();
+    }
 
     bvh_node world_tree{
         world,

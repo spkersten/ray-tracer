@@ -2,10 +2,12 @@
 
 #include "./material.h"
 #include "./hittable.h"
+#include "./texture.h"
 
 class lambertian : public material {
 public:
-    lambertian(const color& albedo) : albedo(albedo) {}
+    lambertian(const color& albedo) : albedo(std::make_shared<solid_color>(albedo)) {}
+    lambertian(std::shared_ptr<texture> texture) : albedo(texture) {}
 
     bool scatter(
         const ray&, const hit_record& rec, color& attenuation, ray& scattered
@@ -15,9 +17,9 @@ public:
             scatter_direction = rec.normal;
         }
         scattered = ray{rec.p, scatter_direction};
-        attenuation = albedo;
+        attenuation = albedo->value(rec.u, rec.v, rec.p);
         return true;
     }
 
-    color albedo;
+    std::shared_ptr<texture> albedo;
 };

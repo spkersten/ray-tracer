@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <chrono>
+#include <iomanip>
 
 #include "./bvh.h"
 #include "./vec3.h"
@@ -232,7 +234,7 @@ int main() {
 
     hittable_list world;
 
-    switch (5) {
+    switch (6) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -318,6 +320,12 @@ int main() {
     for (int j = 0; j < image_height; j++) {
         scanlines.push_back(j);
     }
+    // Shuffle scan lines to make estimating time left more accurate, as some part of the
+    // image might be slower to trace than other parts.
+    std::mt19937 g;
+    std::shuffle(scanlines.begin(), scanlines.end(), g);
+
+    auto start = std::chrono::system_clock::now();
 
     pool<int> p{
         scanlines,
@@ -333,8 +341,31 @@ int main() {
                 pixel_colors[j * image_width + i] = pixel_color;
             }
         },
-        [] (auto lines_left) {
-            std::cerr << "\rScanlines remaining: " << lines_left << " " << std::flush;
+        [&] (auto lines_left) {
+            std::cerr << "\rScanlines remaining: " << lines_left << " / " << image_height;
+
+            auto now = std::chrono::system_clock::now();
+            auto time_spend = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+            auto seconds_spend = time_spend % 60;
+            auto minutes_spend = time_spend / 60;
+            auto hours_spend = time_spend / (60 * 60);
+
+            std::cerr << std::fixed << std::setprecision(2) << std::setfill('0');
+            std::cerr << " -- Time spend: " << hours_spend
+                     << ":" << std::setw(2) << minutes_spend
+                     << ":" << std::setw(2) << seconds_spend;
+
+            auto time_left = static_cast<int>(1.0 * lines_left / (image_height - lines_left) * time_spend);
+            auto seconds_left = time_left % 60;
+            auto minutes_left = time_left / 60;
+            auto hours_left = time_left / (60 * 60);
+
+            std::cerr << " -- Estimated time left: " << hours_left
+                              << ":" << std::setw(2) << minutes_left
+                              << ":" << std::setw(2) << seconds_left;
+
+            // Some extra white space to account for previous lines that where longer
+            std::cerr << "         " << std::flush;
         }
     };
 
@@ -344,7 +375,7 @@ int main() {
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
     
-    for (int j = image_height-1; j >= 0; --j) {
+    for (int j = image_height - 1; j >= 0; --j) {
         for (int i = 0; i < image_width; ++i) {            
             write_color(std::cout, pixel_colors[j * image_width + i], samples_per_pixel);
         }

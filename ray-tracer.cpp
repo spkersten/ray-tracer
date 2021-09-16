@@ -16,6 +16,7 @@
 #include "./image_texture.h"
 #include "./noise_texture.h"
 #include "./diffuse_light.h"
+#include "./xy_rect.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -35,10 +36,10 @@ color ray_color(
         color attenuation;
         color emitted = rec.material->emitted(rec.u, rec.v, rec.p);
 
-        if (!rec.material->scatter(r, rec, attenuation, scattered)) {
-            return emitted;
-        } else {
+        if (rec.material->scatter(r, rec, attenuation, scattered)) {
             return emitted + attenuation * ray_color(scattered, world, depth - 1, background);
+        } else {
+            return emitted;
         }
     } else {
         if (background.has_value()) {
@@ -173,15 +174,45 @@ hittable_list two_perlin_spheres() {
     return objects;
 }
 
+hittable_list simple_light() {
+    hittable_list objects;
+
+    auto perlin = std::make_shared<noise_texture>(4);
+    objects.add(std::make_shared<sphere>(point3{0, -1000, 0}, 1000, std::make_shared<lambertian>(perlin)));
+    objects.add(std::make_shared<sphere>(point3{0, 2, 0}, 2, std::make_shared<lambertian>(perlin)));
+
+    auto light = std::make_shared<diffuse_light>(color{4, 4, 4});
+    objects.add(std::make_shared<xy_rect>(3, 5, 1, 3, -2, light));
+
+    return objects;
+}
+
+hittable_list cornell_box() {
+    hittable_list objects;
+
+    auto red = std::make_shared<lambertian>(color{0.65, 0.05, 0.05});
+    auto white = std::make_shared<lambertian>(color{0.73, 0.73, 0.73});
+    auto green = std::make_shared<lambertian>(color{0.12, 0.45, 0.15});
+    auto light = std::make_shared<diffuse_light>(color{15, 15, 15});
+
+    objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 555, green)); // left
+    objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 0, red)); // right
+    objects.add(std::make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+    objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 0, white)); // floor
+    objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling
+    objects.add(std::make_shared<xy_rect>(0, 555, 0, 555, 555, white)); // back
+
+    return objects;
+}
+
 int main() {
     for (int i = 0; i < 22; i++)
         random_double();
 
     // Image
-    const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 800;
-    const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 1000;
+    auto aspect_ratio = 3.0 / 2.0;
+    int image_width = 400;
+    int samples_per_pixel = 400;
     const int max_depth = 50;
 
     // Camera & World
@@ -196,7 +227,7 @@ int main() {
 
     hittable_list world;
 
-    switch (5) {
+    switch (6) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -225,7 +256,7 @@ int main() {
         vfov = 20.0;
         world = earth();
         break;
-    case 5:
+    case 51:
         background = color{0, 0, 0};
         lookfrom = point3{2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -233,6 +264,23 @@ int main() {
         aperture = 0.0;
         vfov = 40;
         world = three_spheres_light();
+        break;
+    case 5:
+        background = color{0, 0, 0};
+        lookfrom = point3{23, 3, 6};
+        lookat = point3{0, 2, 0};
+        vfov = 20.0;
+        world = simple_light();
+        break;
+    case 6:
+        background = color{0, 0, 0};
+        aspect_ratio = 1;
+        image_width = 400;
+        samples_per_pixel = 200;
+        lookfrom = point3{278, 278, -800};
+        lookat = point3{278, 278,0};
+        vfov = 40.0;
+        world = cornell_box();
         break;
     }
 
@@ -253,6 +301,8 @@ int main() {
     };
 
     // Render
+    const int image_height = static_cast<int>(image_width / aspect_ratio);
+
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
     for (int j = image_height-1; j >= 0; --j) {

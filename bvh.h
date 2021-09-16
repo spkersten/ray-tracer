@@ -26,6 +26,11 @@ public:
         double time0, 
         double time1
     ) {
+        if (src_objects.empty()) {
+            std::cerr << "No source objects in bvh_node constructor.\n";
+            exit(1);
+        }
+
         auto objects = src_objects;
 
         int axis = random_int(0, 2);
@@ -59,6 +64,7 @@ public:
           || !right->bounding_box(time0, time1, right_box)
         ) {
             std::cerr << "No bounding box in bvh_node constructor.\n";
+            exit(1);
         }
 
         box = surrounding_box(left_box, right_box);
@@ -93,6 +99,7 @@ bool box_x_compare(
 
     if (!a->bounding_box(0,0, box_a) || !b->bounding_box(0,0, box_b)) {
         std::cerr << "No bounding box in bvh_node constructor.\n";
+        exit(1);
     }
 
     return box_a.min().x() < box_b.min().x();
@@ -106,6 +113,7 @@ bool box_y_compare(
 
     if (!a->bounding_box(0,0, box_a) || !b->bounding_box(0,0, box_b)) {
         std::cerr << "No bounding box in bvh_node constructor.\n";
+        exit(1);
     }
 
     return box_a.min().y() < box_b.min().y();
@@ -119,6 +127,7 @@ bool box_z_compare(
 
     if (!a->bounding_box(0, 0, box_a) || !b->bounding_box(0, 0, box_b)) {
         std::cerr << "No bounding box in bvh_node constructor.\n";
+        exit(1);
     }
 
     return box_a.min().z() < box_b.min().z();

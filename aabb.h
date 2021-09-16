@@ -9,7 +9,8 @@ public:
     aabb() {}
 
     // All coefficients of a must be smaller than the corresponding 
-    // coefficients of b
+    // coefficients of b.
+    // Bounding box must have non-zero size in all dimensions.
     aabb(const point3& a, const point3& b) : _min(a), _max(b) {}
 
     point3 min() const {

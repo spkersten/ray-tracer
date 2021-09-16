@@ -8,6 +8,7 @@
 void write_color(std::ostream &out, color pixel_color, int samples_per_pixel) {
     auto scale = 1.0 / samples_per_pixel;
 
+    // sqrt to get a gamma of 2
     auto r = std::sqrt(scale * pixel_color.x());
     auto g = std::sqrt(scale * pixel_color.y());
     auto b = std::sqrt(scale * pixel_color.z());

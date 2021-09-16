@@ -17,6 +17,7 @@
 #include "./noise_texture.h"
 #include "./diffuse_light.h"
 #include "./xy_rect.h"
+#include "./box.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -202,6 +203,9 @@ hittable_list cornell_box() {
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling
     objects.add(std::make_shared<xy_rect>(0, 555, 0, 555, 555, white)); // back
 
+    objects.add(std::make_shared<box>(point3{130, 0, 65}, point3{295, 165, 230}, white));
+    objects.add(std::make_shared<box>(point3{265, 0, 295}, point3{430, 330, 460}, white));
+
     return objects;
 }
 
@@ -278,7 +282,7 @@ int main() {
         image_width = 400;
         samples_per_pixel = 200;
         lookfrom = point3{278, 278, -800};
-        lookat = point3{278, 278,0};
+        lookat = point3{278, 278, 0};
         vfov = 40.0;
         world = cornell_box();
         break;

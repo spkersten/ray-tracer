@@ -17,7 +17,7 @@ const double infinity = std::numeric_limits<double>::infinity();
 
 double random_double() {
     static auto distribution = std::uniform_real_distribution<double>(0.0, 1.0);
-    static std::mt19937 generator;
+    static thread_local std::mt19937 generator;
     return distribution(generator);
 }
 

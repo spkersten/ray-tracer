@@ -18,6 +18,7 @@
 #include "./diffuse_light.h"
 #include "./xy_rect.h"
 #include "./box.h"
+#include "./thread_pool.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -231,7 +232,7 @@ int main() {
 
     hittable_list world;
 
-    switch (6) {
+    switch (5) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -304,22 +305,48 @@ int main() {
         focus_distance
     };
 
-    // Render
     const int image_height = static_cast<int>(image_width / aspect_ratio);
 
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    // Generate image
 
-    for (int j = image_height-1; j >= 0; --j) {
-        std::cerr << "\rScanlines remaining: " << j << " " << std::flush;
-        for (int i = 0; i < image_width; ++i) {
-            color pixel_color;
-            for (int s = 0; s < samples_per_pixel; s++) {
-                auto u = (i + random_double()) / (image_width - 1);
-                auto v = (j + random_double()) / (image_height - 1);
-                auto r = camera.get_ray(u, v);
-                pixel_color += ray_color(r, world_tree, max_depth, background);
+    std::vector<color> pixel_colors{
+        static_cast<size_t>(image_width * image_height), 
+        color{0, 0, 0}
+    };
+
+    std::vector<int> scanlines;
+    for (int j = 0; j < image_height; j++) {
+        scanlines.push_back(j);
+    }
+
+    pool<int> p{
+        scanlines,
+        [&] (int j) {
+            for (int i = 0; i < image_width; ++i) {
+                color pixel_color;
+                for (int s = 0; s < samples_per_pixel; s++) {
+                    auto u = (i + random_double()) / (image_width - 1);
+                    auto v = (j + random_double()) / (image_height - 1);
+                    auto r = camera.get_ray(u, v);
+                    pixel_color += ray_color(r, world_tree, max_depth, background);
+                }
+                pixel_colors[j * image_width + i] = pixel_color;
             }
-            write_color(std::cout, pixel_color, samples_per_pixel);
+        },
+        [] (auto lines_left) {
+            std::cerr << "\rScanlines remaining: " << lines_left << " " << std::flush;
+        }
+    };
+
+    p.run(4);
+
+    // Write the image
+
+    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    
+    for (int j = image_height-1; j >= 0; --j) {
+        for (int i = 0; i < image_width; ++i) {            
+            write_color(std::cout, pixel_colors[j * image_width + i], samples_per_pixel);
         }
     }
 

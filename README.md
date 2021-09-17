@@ -17,3 +17,7 @@ Explicit diffuse light:
 Cornell box:
 
 ![](images/cornell-box-ball-and-bubble.png)
+
+Cornell box with smokey/foggy boxes:
+
+![](images/cornell-box-smoke.png)

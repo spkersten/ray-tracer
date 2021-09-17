@@ -23,6 +23,7 @@
 #include "./thread_pool.h"
 #include "./rotation.h"
 #include "./translation.h"
+#include "./constant_medium.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -193,7 +194,7 @@ hittable_list simple_light() {
     return objects;
 }
 
-hittable_list empty_cornell_box() {
+hittable_list empty_cornell_box(bool with_light = true) {
     hittable_list objects;
 
     auto red = std::make_shared<lambertian>(color{0.65, 0.05, 0.05});
@@ -203,7 +204,9 @@ hittable_list empty_cornell_box() {
 
     objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 555, green)); // left
     objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 0, red)); // right
-    objects.add(std::make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+    if (with_light) {
+        objects.add(std::make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+    }
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 0, white)); // floor
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling
     objects.add(std::make_shared<xy_rect>(0, 555, 0, 555, 555, white)); // back
@@ -234,6 +237,36 @@ hittable_list cornell_box() {
     );
 
     objects.add(box2);
+
+    return objects;
+}
+
+hittable_list cornell_smoke() {
+    hittable_list objects = empty_cornell_box(false);
+
+    auto light = std::make_shared<diffuse_light>(color(7, 7, 7));
+    objects.add(std::make_shared<xz_rect>(113, 443, 127, 432, 554, light));
+
+    auto white = std::make_shared<lambertian>(color{0.73, 0.73, 0.73});
+
+    auto box1 = std::make_shared<translate>(
+        std::make_shared<rotate_y>(
+            std::make_shared<box>(point3{0, 0, 0}, point3{165, 165, 165}, white),
+            pi / 180 * -18
+        ),
+        vec3{130, 0, 65}
+    );
+    objects.add(std::make_shared<constant_medium>(box1, 0.01, color{0, 0, 0}));
+
+    auto box2 = std::make_shared<translate>(
+        std::make_shared<rotate_y>(
+            std::make_shared<box>(point3{0, 0, 0}, point3{165, 330, 165}, white),
+            pi / 180 * 15
+        ),
+        vec3{265, 0, 295}
+    );
+
+    objects.add(std::make_shared<constant_medium>(box2, 0.01, color{1, 1, 1}));
 
     return objects;
 }
@@ -293,7 +326,7 @@ int main() {
 
     hittable_list world;
 
-    switch (6) {
+    switch (7) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -347,6 +380,15 @@ int main() {
         lookat = point3{278, 278, 0};
         vfov = 40.0;
         world = cornell_box_2();
+        break;
+    case 7:
+        aspect_ratio = 1.0;
+        image_width = 600;
+        samples_per_pixel = 1500;
+        lookfrom = point3{278, 278, -800};
+        lookat = point3{278, 278, 0};
+        vfov = 40.0;
+        world = cornell_smoke();
         break;
     }
 

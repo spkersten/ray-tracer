@@ -36,7 +36,7 @@ color ray_color(
     if (world.hit(r, 0.001, infinity, rec)) {
         
         // Normals: 
-        //return 0.5 * (rec.normal + color{1, 1, 1});
+        // return 0.5 * (rec.normal + color{1, 1, 1});
 
         ray scattered;
         color attenuation;
@@ -193,7 +193,7 @@ hittable_list simple_light() {
     return objects;
 }
 
-hittable_list cornell_box() {
+hittable_list empty_cornell_box() {
     hittable_list objects;
 
     auto red = std::make_shared<lambertian>(color{0.65, 0.05, 0.05});
@@ -207,6 +207,14 @@ hittable_list cornell_box() {
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 0, white)); // floor
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling
     objects.add(std::make_shared<xy_rect>(0, 555, 0, 555, 555, white)); // back
+
+    return objects;
+}
+
+hittable_list cornell_box() {
+    hittable_list objects = empty_cornell_box();
+
+    auto white = std::make_shared<lambertian>(color{0.73, 0.73, 0.73});
 
     auto box1 = std::make_shared<translate>(
         std::make_shared<rotate_y>(
@@ -226,6 +234,39 @@ hittable_list cornell_box() {
     );
 
     objects.add(box2);
+
+    return objects;
+}
+
+hittable_list cornell_box_2() {
+    hittable_list objects = empty_cornell_box();
+
+    auto mirror = std::make_shared<yz_rect>(
+        20, 275, 150, 400, 2,
+        std::make_shared<metal>(color{1, 1, 1}, 0)
+    );
+    objects.add(mirror);
+
+    auto metal_ball = std::make_shared<sphere>(
+        point3{160, 120, 405},
+        120,
+        std::make_shared<metal>(color{0.9, 0.9, 0.9}, 0.05)
+    );
+    objects.add(metal_ball);
+
+    point3 bubble_center{410, 260, 300};
+    auto bubble = std::make_shared<sphere>(
+        bubble_center,
+        120,
+        std::make_shared<dielectric>(1.5)
+    );
+    objects.add(bubble);
+    auto bubble_inner = std::make_shared<sphere>(
+        bubble_center,
+        115,
+        std::make_shared<dielectric>(1 / 1.5)
+    );
+    objects.add(bubble_inner);
 
     return objects;
 }
@@ -301,11 +342,11 @@ int main() {
         background = color{0, 0, 0};
         aspect_ratio = 1;
         image_width = 400;
-        samples_per_pixel = 10;
+        samples_per_pixel = 1000;
         lookfrom = point3{278, 278, -800};
         lookat = point3{278, 278, 0};
         vfov = 40.0;
-        world = cornell_box();
+        world = cornell_box_2();
         break;
     }
 

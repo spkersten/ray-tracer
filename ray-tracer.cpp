@@ -21,6 +21,8 @@
 #include "./xy_rect.h"
 #include "./box.h"
 #include "./thread_pool.h"
+#include "./rotation.h"
+#include "./translation.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -206,8 +208,24 @@ hittable_list cornell_box() {
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling
     objects.add(std::make_shared<xy_rect>(0, 555, 0, 555, 555, white)); // back
 
-    objects.add(std::make_shared<box>(point3{130, 0, 65}, point3{295, 165, 230}, white));
-    objects.add(std::make_shared<box>(point3{265, 0, 295}, point3{430, 330, 460}, white));
+    auto box1 = std::make_shared<translate>(
+        std::make_shared<rotate_y>(
+            std::make_shared<box>(point3{0, 0, 0}, point3{165, 165, 165}, white),
+            pi / 180 * -18
+        ),
+        vec3{130, 0, 65}
+    );
+    objects.add(box1);
+
+    auto box2 = std::make_shared<translate>(
+        std::make_shared<rotate_y>(
+            std::make_shared<box>(point3{0, 0, 0}, point3{165, 330, 165}, white),
+            pi / 180 * 15
+        ),
+        vec3{265, 0, 295}
+    );
+
+    objects.add(box2);
 
     return objects;
 }
@@ -227,7 +245,7 @@ int main() {
     point3 lookat{0, 0, 0};
     vec3 up{0, 1, 0};
     double focus_distance = 10.0;
-    double aperture = 0.1;
+    double aperture = 0.0;
     double vfov = 20;
 
     std::optional<color> background;
@@ -283,7 +301,7 @@ int main() {
         background = color{0, 0, 0};
         aspect_ratio = 1;
         image_width = 400;
-        samples_per_pixel = 200;
+        samples_per_pixel = 10;
         lookfrom = point3{278, 278, -800};
         lookat = point3{278, 278, 0};
         vfov = 40.0;

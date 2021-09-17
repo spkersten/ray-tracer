@@ -143,3 +143,42 @@ vec3 refract(const vec3& v, const vec3& n, double refractive_index_ratio) {
     vec3 r_out_parallel = -sqrt(std::abs(1.0 - r_out_perpendicular.length_squared())) * n;
     return r_out_perpendicular + r_out_parallel;
 }
+
+class rotation {
+public:
+    rotation(double angle) : cos_theta(std::cos(angle)), sin_theta(std::sin(angle)) {}
+
+    vec3 x_rotated(vec3 p) const {
+        return {
+            p.x(),
+            cos_theta * p.y() - sin_theta * p.z(),
+            sin_theta * p.y() + cos_theta * p.z()
+        };
+    }
+
+    vec3 y_rotated(vec3 p) const {
+        return {
+            cos_theta * p.x() + sin_theta * p.z(),
+            p.y(),
+            -sin_theta * p.x() + cos_theta * p.z()
+        };
+    }
+
+    vec3 z_rotated(vec3 p) const {
+        return {
+            cos_theta * p.x() - sin_theta * p.z(),
+            sin_theta * p.x() + cos_theta * p.z(),
+            p.y()
+        };
+    }
+
+    rotation inverse() const {
+        return {cos_theta, -sin_theta};
+    }
+
+private:
+    rotation(double _cos_theta, double _sin_theta) : cos_theta(_cos_theta), sin_theta(_sin_theta) {}
+
+    double cos_theta;
+    double sin_theta;
+};

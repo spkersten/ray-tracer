@@ -64,6 +64,7 @@
         "utility": "cpp",
         "vector": "cpp",
         "__functional_03": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "iomanip": "cpp"
     }
 }

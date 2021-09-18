@@ -8,9 +8,8 @@ class difference : public hittable {
 public:
     // a - b
     difference(
-        std::shared_ptr<hittable> a_, std::shared_ptr<hittable> b_, 
-        std::shared_ptr<material> material_ = nullptr
-    ) : a(a_), b(b_), material(material_) {}
+        std::shared_ptr<hittable> a_, std::shared_ptr<hittable> b_
+    ) : a(a_), b(b_) {}
 
     bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
         auto a_intervals = get_intervals(r, *a);
@@ -95,5 +94,95 @@ private:
 public:
     const std::shared_ptr<hittable> a;
     const std::shared_ptr<hittable> b;
-    const std::shared_ptr<material> material;
+};
+
+class intersection : public hittable {
+public:
+    // a & b
+    intersection(
+        std::shared_ptr<hittable> a_, std::shared_ptr<hittable> b_
+    ) : a(a_), b(b_) {
+        aabb box_a;
+        has_box = true;
+        if (!a->bounding_box(0, 1, box_a)) {
+            has_box = false;
+        }
+        aabb box_b;
+        if (!b->bounding_box(0, 1, box_b)) {
+            has_box = false;
+        }
+        if (has_box) {
+            box = enclosed_box(box_a, box_b);
+        }
+    }
+
+    bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
+        interval interval_a;
+        interval_a.second.t = -infinity;
+        interval interval_b;
+        interval_b.second.t = -infinity;
+
+        bool keep_a = false;
+        bool keep_b = false;
+
+        do {
+            if (!keep_a && !get_interval(*a, r, t_min, t_max, interval_a)) {
+                return false;
+            }
+            if (!keep_b && !get_interval(*b, r, t_min, t_max, interval_b)) {
+                return false;
+            }
+
+            auto& first = interval_a.first.t > interval_b.first.t ? interval_a.first : interval_b.first;
+            auto& second = interval_a.second.t < interval_b.second.t ? interval_a.second : interval_b.second;
+            if (first.t < second.t) {
+                if (t_min < first.t && first.t < t_max) {
+                    rec = first;
+                    return true;
+                }
+                if (t_min < second.t && second.t < t_max) {
+                    rec = second;
+                    return true;
+                }
+            }
+
+            keep_a = interval_a.second.t > interval_b.second.t;
+            keep_b = interval_b.second.t > interval_a.second.t;
+        } while (true);
+
+        return false;
+    }
+
+    bool bounding_box(double time0, double time1, aabb& output_box) const override {
+        output_box = box;
+        return has_box;
+    }
+
+private:
+    static bool get_interval(
+        const hittable& h, const ray& r, double t_min, double t_max, interval& interval
+    ) {
+        hit_record& rec_a0 = interval.first;
+        hit_record& rec_a1 = interval.second;
+
+        do {
+            if (!h.hit(r, rec_a1.t + 0.0001, infinity, rec_a0)) {
+                return false;
+            }
+            if (!h.hit(r, rec_a0.t + 0.0001, infinity, rec_a1)) {
+                return false;
+            }
+            if (rec_a0.t > t_max) {
+                return false;
+            }
+        } while (rec_a1.t < t_min);
+
+        return true;
+    }
+
+private:
+    const std::shared_ptr<hittable> a;
+    const std::shared_ptr<hittable> b;
+    aabb box;
+    bool has_box;
 };

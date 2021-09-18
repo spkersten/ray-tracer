@@ -308,41 +308,67 @@ hittable_list cornell_box_2() {
 hittable_list cornell_box_csg() {
     hittable_list objects = empty_cornell_box();
 
-    // auto metal_ball = std::make_shared<sphere>(
-    //     point3{160, 120, 405},
+    {
+        auto ball = std::make_shared<sphere>(
+            point3{0, 0, 0},
+            120,
+            std::make_shared<lambertian>(color{0.3, 0.2, 0.9})
+        );
+        auto cut_out = std::make_shared<sphere>(
+            point3{0, 100, -20},
+            120,
+            std::make_shared<lambertian>(color{0.3, 0.2, 0.9})
+        );
+        objects.add(
+            std::make_shared<translate>(
+                std::make_shared<difference>(
+                    ball,
+                    cut_out
+                ),
+                vec3{160, 120, 405}
+            )
+        );
+    }
+
+    {
+        auto ball = std::make_shared<sphere>(
+            point3{0, 0, 0},
+            120,
+            std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
+        );
+        auto cut_out = std::make_shared<sphere>(
+            point3{120, 0, 0},
+            120,
+            std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
+        );
+        objects.add(
+            std::make_shared<translate>(
+                std::make_shared<intersection>(
+                    ball,
+                    cut_out
+                ),
+                vec3{410, 260, 300}
+            )
+        );
+    }
+
+    // Glass half sphere
+    // auto ball = std::make_shared<sphere>(
+    //     point3{277, 247, 277},
     //     120,
-    //     std::make_shared<metal>(color{0.9, 0.9, 0.9}, 0.05)
+    //     std::make_shared<dielectric>(1.5)
     // );
-    // auto cut_out = std::make_shared<sphere>(
-    //     point3{160, 240, 405},
-    //     120,
-    //     std::make_shared<metal>(color{0.9, 0.9, 0.9}, 0.05)
+    // auto removed = std::make_shared<box>(
+    //     point3{5, 247, 5},
+    //     point3{550, 550, 550},
+    //     std::make_shared<dielectric>(1.5)
     // );
     // objects.add(
     //     std::make_shared<difference>(
-    //         metal_ball,
-    //         cut_out
+    //         ball,
+    //         removed
     //     )
     // );
-
-    auto ball = std::make_shared<sphere>(
-        point3{277, 247, 277},
-        120,
-        std::make_shared<dielectric>(1.5)
-    );
-    auto removed = std::make_shared<box>(
-        point3{5, 247, 5},
-        point3{550, 550, 550},
-        std::make_shared<dielectric>(1.5)
-    );
-    // objects.add(ball);
-    // objects.add(removed);
-    objects.add(
-        std::make_shared<difference>(
-            ball,
-            removed
-        )
-    );
 
     return objects;
 }

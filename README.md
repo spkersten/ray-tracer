@@ -21,3 +21,9 @@ Cornell box:
 Cornell box with smokey/foggy boxes:
 
 ![](images/cornell-box-smoke.png)
+
+Constructive solid geometry:
+
+| Glass dome | Intersection and difference |
+| --- | --- |
+| ![](images/csg-glass-dome.jpg) | ![](images/csg-balls.jpg) |

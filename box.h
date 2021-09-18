@@ -9,14 +9,20 @@ public:
     box(const point3& p0, const point3& p1, std::shared_ptr<material> material)
       : _min(p0), _max(p1) 
     {
-        sides.add(std::make_shared<xy_rect>(_min.x(), _max.x(), _min.y(), _max.y(), _min.z(), material));
-        sides.add(std::make_shared<xy_rect>(_min.x(), _max.x(), _min.y(), _max.y(), _max.z(), material));
+        sides.add(std::make_shared<xy_rect>(
+            _min.x(), _max.x(), _min.y(), _max.y(), _min.z(), -1, material));
+        sides.add(std::make_shared<xy_rect>(
+            _min.x(), _max.x(), _min.y(), _max.y(), _max.z(), 1, material));
 
-        sides.add(std::make_shared<xz_rect>(_min.x(), _max.x(), _min.z(), _max.z(), _min.y(), material));
-        sides.add(std::make_shared<xz_rect>(_min.x(), _max.x(), _min.z(), _max.z(), _max.y(), material));
+        sides.add(std::make_shared<xz_rect>(
+            _min.x(), _max.x(), _min.z(), _max.z(), _min.y(), -1, material));
+        sides.add(std::make_shared<xz_rect>(
+            _min.x(), _max.x(), _min.z(), _max.z(), _max.y(), 1, material));
 
-        sides.add(std::make_shared<yz_rect>(_min.y(), _max.y(), _min.z(), _max.z(), _min.x(), material));
-        sides.add(std::make_shared<yz_rect>(_min.y(), _max.y(), _min.z(), _max.z(), _max.x(), material));
+        sides.add(std::make_shared<yz_rect>(
+            _min.y(), _max.y(), _min.z(), _max.z(), _min.x(), -1, material));
+        sides.add(std::make_shared<yz_rect>(
+            _min.y(), _max.y(), _min.z(), _max.z(), _max.x(), 1, material));
     }
 
     bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {

@@ -9,7 +9,7 @@ class material;
 
 struct hit_record {
     point3 p;
-    vec3 normal;
+    vec3 normal; // points "against" the ray: dot(normal, ray.direction()) < 0
     std::shared_ptr<material> material;
     double t;
     double u;

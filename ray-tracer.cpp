@@ -24,6 +24,7 @@
 #include "./rotation.h"
 #include "./translation.h"
 #include "./constant_medium.h"
+#include "./csg.h"
 
 color ray_color(
     const ray& r, const hittable& world, int depth, 
@@ -37,7 +38,7 @@ color ray_color(
     if (world.hit(r, 0.001, infinity, rec)) {
         
         // Normals: 
-        // return 0.5 * (rec.normal + color{1, 1, 1});
+        //return 0.5 * (rec.normal + color{1, 1, 1});
 
         ray scattered;
         color attenuation;
@@ -304,6 +305,48 @@ hittable_list cornell_box_2() {
     return objects;
 }
 
+hittable_list cornell_box_csg() {
+    hittable_list objects = empty_cornell_box();
+
+    // auto metal_ball = std::make_shared<sphere>(
+    //     point3{160, 120, 405},
+    //     120,
+    //     std::make_shared<metal>(color{0.9, 0.9, 0.9}, 0.05)
+    // );
+    // auto cut_out = std::make_shared<sphere>(
+    //     point3{160, 240, 405},
+    //     120,
+    //     std::make_shared<metal>(color{0.9, 0.9, 0.9}, 0.05)
+    // );
+    // objects.add(
+    //     std::make_shared<difference>(
+    //         metal_ball,
+    //         cut_out
+    //     )
+    // );
+
+    auto ball = std::make_shared<sphere>(
+        point3{277, 247, 277},
+        120,
+        std::make_shared<dielectric>(1.5)
+    );
+    auto removed = std::make_shared<box>(
+        point3{5, 247, 5},
+        point3{550, 550, 550},
+        std::make_shared<dielectric>(1.5)
+    );
+    // objects.add(ball);
+    // objects.add(removed);
+    objects.add(
+        std::make_shared<difference>(
+            ball,
+            removed
+        )
+    );
+
+    return objects;
+}
+
 int main() {
     for (int i = 0; i < 22; i++)
         random_double();
@@ -326,7 +369,7 @@ int main() {
 
     hittable_list world;
 
-    switch (7) {
+    switch (8) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -389,6 +432,16 @@ int main() {
         lookat = point3{278, 278, 0};
         vfov = 40.0;
         world = cornell_smoke();
+        break;
+    case 8:
+        background = color{0, 0, 0};
+        aspect_ratio = 1;
+        image_width = 400;
+        samples_per_pixel = 1000;
+        lookfrom = point3{278, 278, -800};
+        lookat = point3{278, 278, 0};
+        vfov = 40.0;
+        world = cornell_box_csg();
         break;
     }
 

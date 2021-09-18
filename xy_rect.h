@@ -6,9 +6,14 @@
 class xy_rect : public hittable {
 public:
     // _x0 < _x1 and _y0 < _y1
-    xy_rect(double _x0, double _x1, double _y0, double _y1, double _k, std::shared_ptr<material> _material)
-      : x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), material(_material) {}
+    xy_rect(double _x0, double _x1, double _y0, double _y1, double _k, double _normal,
+        std::shared_ptr<material> _material
+    ) : x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), normal(_normal), material(_material) {}
     
+xy_rect(double _x0, double _x1, double _y0, double _y1, double _k,
+        std::shared_ptr<material> _material
+    ) : x0(_x0), x1(_x1), y0(_y0), y1(_y1), k(_k), normal(1), material(_material) {}
+
     bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
         auto t = (k - r.origin().z()) / r.direction().z();
         if (t < t_min || t > t_max) {
@@ -20,7 +25,7 @@ public:
             return false;
         }
         rec.t = t;
-        rec.set_face_normal(r, vec3{0, 0, 1});
+        rec.set_face_normal(r, vec3{0, 0, normal});
         rec.material = material;
         rec.p = r.at(t);
         rec.u = (x - x0) / (x1 - x0);
@@ -40,14 +45,20 @@ private:
     double y0;
     double y1;
     double k;
+    double normal;
     std::shared_ptr<material> material;
 };
 
 class xz_rect : public hittable {
 public:
     // _x0 < _x1 and _z0 < _z1
-    xz_rect(double _x0, double _x1, double _z0, double _z1, double _k, std::shared_ptr<material> _material)
-      : x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), material(_material) {}
+    xz_rect(double _x0, double _x1, double _z0, double _z1, double _k, double _normal,
+      std::shared_ptr<material> _material
+    ) : x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), normal(_normal), material(_material) {}
+    
+    xz_rect(double _x0, double _x1, double _z0, double _z1, double _k,
+      std::shared_ptr<material> _material
+    ) : x0(_x0), x1(_x1), z0(_z0), z1(_z1), k(_k), normal(1), material(_material) {}
     
     bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
         auto t = (k - r.origin().y()) / r.direction().y();
@@ -60,7 +71,7 @@ public:
             return false;
         }
         rec.t = t;
-        rec.set_face_normal(r, vec3{0, 1, 0});
+        rec.set_face_normal(r, vec3{0, normal, 0});
         rec.material = material;
         rec.p = r.at(t);
         rec.u = (x - x0) / (x1 - x0);
@@ -80,6 +91,7 @@ private:
     double z0;
     double z1;
     double k;
+    double normal;
     std::shared_ptr<material> material;
 };
 
@@ -87,8 +99,13 @@ private:
 class yz_rect : public hittable {
 public:
     // _y0 < _y1 and _z0 < _z1
-    yz_rect(double _y0, double _y1, double _z0, double _z1, double _k, std::shared_ptr<material> _material)
-      : y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), material(_material) {}
+    yz_rect(double _y0, double _y1, double _z0, double _z1, double _k, double _normal,
+        std::shared_ptr<material> _material
+    ) : y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), normal(_normal), material(_material) {}
+    
+    yz_rect(double _y0, double _y1, double _z0, double _z1, double _k,
+        std::shared_ptr<material> _material
+    ) : y0(_y0), y1(_y1), z0(_z0), z1(_z1), k(_k), normal(1), material(_material) {}
     
     bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
         auto t = (k - r.origin().x()) / r.direction().x();
@@ -101,7 +118,7 @@ public:
             return false;
         }
         rec.t = t;
-        rec.set_face_normal(r, vec3{1, 0, 0});
+        rec.set_face_normal(r, vec3{normal, 0, 0});
         rec.material = material;
         rec.p = r.at(t);
         rec.u = (y - y0) / (y1 - y0);
@@ -121,5 +138,6 @@ private:
     double z0;
     double z1;
     double k;
+    double normal;
     std::shared_ptr<material> material;
 };

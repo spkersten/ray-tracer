@@ -374,6 +374,64 @@ hittable_list cornell_box_csg() {
     return objects;
 }
 
+hittable_list lens_setup() {
+    hittable_list objects;
+
+    auto horizontal_mat = std::make_shared<lambertian>(color{0.9, 0.2, 0.2});
+    auto vettical_mat = std::make_shared<lambertian>(color{0.2, 0.9, 0.2});
+    // auto horizontal_mat = std::make_shared<diffuse_light>(color{10, 2, 2});
+    // auto vettical_mat = std::make_shared<diffuse_light>(color{2, 10, 2});
+    objects.add(
+        std::make_shared<yz_rect>(
+            -10, 10, 0, 2, -2, 
+            horizontal_mat
+        )
+    );
+    objects.add(
+        std::make_shared<yz_rect>(
+            -1, 1, 0, 10, -12, 
+            vettical_mat
+        )
+    );
+
+    auto R = 27.0;
+    auto d = 10;
+    auto lens_x = 40.0;
+    auto glass = std::make_shared<dielectric>(1.5);
+    objects.add(
+        std::make_shared<intersection>(
+            std::make_shared<sphere>(
+                point3{lens_x + -R + d/2, 0, 0},
+                R,
+                glass
+            ),
+            std::make_shared<sphere>(
+                point3{lens_x + R - d/2, 0, 0},
+                R,
+                glass
+            )
+        )
+    );
+
+    // screen
+    objects.add(
+        std::make_shared<yz_rect>(
+            -90, 90, -90, 90, 120,
+            std::make_shared<lambertian>(color{1, 1, 1})
+        )
+    );
+
+    // backlight
+    objects.add(
+        std::make_shared<yz_rect>(
+            -20, 20, -20, 20, -100, 
+            std::make_shared<diffuse_light>(10 * color(0.8, 0.7, 0.5))
+        )
+    );
+
+    return objects;
+}
+
 int main() {
     for (int i = 0; i < 22; i++)
         random_double();
@@ -396,7 +454,7 @@ int main() {
 
     hittable_list world;
 
-    switch (8) {
+    switch (9) {
     case 0:
         lookfrom = point3{-2, 2, 1};
         lookat = point3{0, 0, -1};
@@ -470,6 +528,16 @@ int main() {
         vfov = 40.0;
         world = cornell_box_csg();
         break;
+    case 9:
+        background = color{0, 0, 0};
+        aspect_ratio = 3.0/2.0;
+        image_width = 600;
+        samples_per_pixel = 10000;
+        lookfrom = point3{-120, 120, 0};
+        lookat = point3{60, 0, 0};
+        vfov = 24;
+        up = vec3{0, 0, 1};
+        world = lens_setup();
     }
 
     bvh_node world_tree{

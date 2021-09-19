@@ -309,19 +309,20 @@ hittable_list cornell_box_csg() {
     hittable_list objects = empty_cornell_box();
 
     {
+        auto m = std::make_shared<dielectric>(1.5);
         auto ball = std::make_shared<sphere>(
             point3{0, 0, 0},
             120,
-            std::make_shared<lambertian>(color{0.3, 0.2, 0.9})
+            m
         );
         auto cut_out = std::make_shared<sphere>(
-            point3{0, 100, -20},
+            point3{0, 80, -60},
             120,
-            std::make_shared<lambertian>(color{0.3, 0.2, 0.9})
+            m
         );
         objects.add(
             std::make_shared<translate>(
-                std::make_shared<difference>(
+                std::make_shared<fusion>(
                     ball,
                     cut_out
                 ),
@@ -330,27 +331,27 @@ hittable_list cornell_box_csg() {
         );
     }
 
-    {
-        auto ball = std::make_shared<sphere>(
-            point3{0, 0, 0},
-            120,
-            std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
-        );
-        auto cut_out = std::make_shared<sphere>(
-            point3{120, 0, 0},
-            120,
-            std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
-        );
-        objects.add(
-            std::make_shared<translate>(
-                std::make_shared<intersection>(
-                    ball,
-                    cut_out
-                ),
-                vec3{410, 260, 300}
-            )
-        );
-    }
+    // {
+    //     auto ball = std::make_shared<sphere>(
+    //         point3{0, 0, 0},
+    //         120,
+    //         std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
+    //     );
+    //     auto cut_out = std::make_shared<sphere>(
+    //         point3{120, 0, 0},
+    //         120,
+    //         std::make_shared<lambertian>(color{0.9, 0.8, 0.1})
+    //     );
+    //     objects.add(
+    //         std::make_shared<translate>(
+    //             std::make_shared<intersection>(
+    //                 ball,
+    //                 cut_out
+    //             ),
+    //             vec3{410, 260, 300}
+    //         )
+    //     );
+    // }
 
     // Glass half sphere
     // auto ball = std::make_shared<sphere>(
@@ -463,7 +464,7 @@ int main() {
         background = color{0, 0, 0};
         aspect_ratio = 1;
         image_width = 400;
-        samples_per_pixel = 1000;
+        samples_per_pixel = 400;
         lookfrom = point3{278, 278, -800};
         lookat = point3{278, 278, 0};
         vfov = 40.0;

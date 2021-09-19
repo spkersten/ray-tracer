@@ -4,6 +4,10 @@
 
 using interval = std::pair<hit_record, hit_record>;
 
+inline bool get_interval(
+    const hittable& h, const ray& r, double t_min, double t_max, interval& interval
+);
+
 class difference : public hittable {
 public:
     // a - b
@@ -159,25 +163,89 @@ public:
     }
 
 private:
-    static bool get_interval(
-        const hittable& h, const ray& r, double t_min, double t_max, interval& interval
-    ) {
-        hit_record& rec_a0 = interval.first;
-        hit_record& rec_a1 = interval.second;
+    const std::shared_ptr<hittable> a;
+    const std::shared_ptr<hittable> b;
+    aabb box;
+    bool has_box;
+};
 
-        do {
-            if (!h.hit(r, rec_a1.t + 0.0001, infinity, rec_a0)) {
-                return false;
-            }
-            if (!h.hit(r, rec_a0.t + 0.0001, infinity, rec_a1)) {
-                return false;
-            }
-            if (rec_a0.t > t_max) {
-                return false;
-            }
-        } while (rec_a1.t < t_min);
+class fusion : public hittable {
+public:
+    // a + b
+    fusion(
+        std::shared_ptr<hittable> a_, std::shared_ptr<hittable> b_
+    ) : a(a_), b(b_) {
+        aabb box_a;
+        has_box = true;
+        if (!a->bounding_box(0, 1, box_a)) {
+            has_box = false;
+        }
+        aabb box_b;
+        if (!b->bounding_box(0, 1, box_b)) {
+            has_box = false;
+        }
+        if (has_box) {
+            box = surrounding_box(box_a, box_b);
+        }
+    }
 
-        return true;
+    bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override {
+        hit_record rec_a;
+        hit_record rec_b;
+        
+        bool hit_a = a->hit(r, t_min, infinity, rec_a);
+        bool hit_b = b->hit(r, t_min, infinity, rec_b);
+
+        while (hit_a || hit_b) {
+            if (!hit_b) {
+                rec = rec_a;
+                return true;
+            } else if (!hit_a) {
+                rec = rec_b;
+                return rec.t < t_max;
+            } else { // both hit
+                if (rec_a.front_face && rec_b.front_face) {
+                    rec = rec_a.t < rec_b.t ? rec_a : rec_b;
+                    return rec.t < t_max;
+                } else if (!rec_a.front_face && !rec_b.front_face) {
+                    rec = rec_a.t > rec_b.t ? rec_a : rec_b;
+                    return rec.t < t_max;
+                } else {
+                    // inside
+                    if (rec_a.front_face) { 
+                        if (rec_a.t < rec_b.t) {
+                            if (rec_b.t > t_max) {
+                                return false;
+                            } else {
+                                // hit a again to find end
+                                hit_a = a->hit(r, rec_a.t + 0.0001, infinity, rec_a);
+                            }
+                        } else {
+                            rec = rec_b;
+                            return rec.t < t_max;
+                        }
+                    } else { // rec_b.front_face
+                        if (rec_b.t < rec_a.t) {
+                            if (rec_a.t > t_max) {
+                                return false;
+                            } else {
+                                // hit b again to find end  
+                                hit_b = b->hit(r, rec_b.t + 0.0001, infinity, rec_b);
+                            }
+                        } else {
+                            rec = rec_a;
+                            return rec.t < t_max;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    bool bounding_box(double time0, double time1, aabb& output_box) const override {
+        output_box = box;
+        return has_box;
     }
 
 private:
@@ -186,3 +254,24 @@ private:
     aabb box;
     bool has_box;
 };
+
+inline bool get_interval(
+    const hittable& h, const ray& r, double t_min, double t_max, interval& interval
+) {
+    hit_record& rec_a0 = interval.first;
+    hit_record& rec_a1 = interval.second;
+
+    do {
+        if (!h.hit(r, rec_a1.t + 0.0001, infinity, rec_a0)) {
+            return false;
+        }
+        if (!h.hit(r, rec_a0.t + 0.0001, infinity, rec_a1)) {
+            return false;
+        }
+        if (rec_a0.t > t_max) {
+            return false;
+        }
+    } while (rec_a1.t < t_min);
+
+    return true;
+}

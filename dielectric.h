@@ -8,9 +8,10 @@ public:
     dielectric(double index_of_refraction) : index_of_refraction(index_of_refraction) {}
 
     bool scatter(
-        const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+        const ray& r_in, const hit_record& rec, scatter_record& srec
     ) const override {
-        attenuation = color{1.0, 1.0, 1.0};
+        srec.attenuation = color{1.0, 1.0, 1.0};
+        srec.pdf = nullptr;
         double refraction_ratio = rec.front_face ? (1.0 / index_of_refraction) : index_of_refraction;
 
         vec3 unit_direction = r_in.direction().normalized();
@@ -26,7 +27,7 @@ public:
             direction = refract(unit_direction, rec.normal, refraction_ratio);
         }
 
-        scattered = ray{rec.p, direction};
+        srec.skip_pdf_ray = ray{rec.p, direction};
         return true;
     }
 

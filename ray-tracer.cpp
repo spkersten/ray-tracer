@@ -42,7 +42,7 @@ int main() {
         simple_light(scene);
         break;
     case 6:
-        cornell_box_2(scene);
+        cornell_box(scene);
         break;
     case 7:
         cornell_smoke(scene);

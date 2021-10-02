@@ -88,6 +88,19 @@ vec3 random_unit_vector() {
     return random_in_unit_sphere().normalized();
 }
 
+// Random direction weigthed by cos(theta) with z >= 0
+vec3 random_cosine_direction() {
+    const auto r1 = random_double();
+    const auto r2 = random_double();
+
+    const auto phi = 2 * pi * r1;
+    const auto x = std::cos(phi) * std::sqrt(r2);
+    const auto y = std::sin(phi) * std::sqrt(r2);
+    const auto z = std::sqrt(1 - r2);
+
+    return {x, y, z};
+}
+
 inline std::ostream& operator<<(std::ostream &out, const vec3 &v) {
     return out << v.x() << ' ' << v.y() << ' ' << v.z();
 }

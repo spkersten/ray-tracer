@@ -8,12 +8,16 @@ public:
     diffuse_light(std::shared_ptr<texture> a) : emit(a) {}
     diffuse_light(color c) : emit(std::make_shared<solid_color>(c)) {}
 
-    bool scatter(const ray&, const hit_record&, color&, ray&) const override {
+    bool scatter(const ray&, const hit_record&, scatter_record&) const override {
         return false;
     }
 
-    color emitted(double u, double v, const point3& p) const override {
-        return emit->value(u, v, p);
+    color emitted(const ray& r_in, const hit_record& rec) const override {
+        if (rec.front_face) {
+            return emit->value(rec.u, rec.v, rec.p);
+        } else {
+            return {0, 0, 0};
+        }
     }
 
 public:

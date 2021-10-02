@@ -11,6 +11,7 @@
 #include "./color.h"
 #include "./thread_pool.h"
 #include "./material.h"
+#include "./pdf.h"
 
 class camera_config {
 public:
@@ -120,6 +121,7 @@ public:
     hittable_list world;
     camera_config cam;
     std::optional<color> background = std::nullopt;
+    std::shared_ptr<hittable> light;
 
     int image_width = 100;
     double aspect_ratio = 1.0;
@@ -138,16 +140,28 @@ private:
             // Normals: 
             //return 0.5 * (rec.normal + color{1, 1, 1});
 
-            ray scattered;
-            color attenuation;
-            color emitted = rec.material->emitted(rec.u, rec.v, rec.p);
+            scatter_record srec;
+            color emitted = rec.material->emitted(r, rec);
 
-            if (rec.material->scatter(r, rec, attenuation, scattered)) {
-                return emitted + attenuation * ray_color(scattered, world_tree, depth - 1);
+            if (rec.material->scatter(r, rec, srec)) {
+                if (srec.pdf != nullptr) {
+                    auto p0 = std::make_shared<hittable_pdf>(*light, rec.p);
+                    mixture_pdf mix_pdf{p0, srec.pdf, 0.1};
+
+                    ray scattered{rec.p, mix_pdf.generate()};
+                    auto pdf_value = mix_pdf.value(scattered.direction());
+
+                    return emitted
+                        + srec.attenuation * rec.material->scattering_pdf(r, rec, scattered)
+                                        * ray_color(scattered, world, depth - 1) / pdf_value;
+                } else {
+                    return emitted 
+                        + srec.attenuation * ray_color(srec.skip_pdf_ray, world_tree, depth - 1);
+                }
             } else {
                 return emitted;
             }
-        } else {
+        } else { // nothing hit
             if (background.has_value()) {
                 return background.value();
             } else {

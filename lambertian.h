@@ -3,6 +3,7 @@
 #include "./material.h"
 #include "./hittable.h"
 #include "./texture.h"
+#include "./onb.h"
 
 class lambertian : public material {
 public:
@@ -10,15 +11,18 @@ public:
     lambertian(std::shared_ptr<texture> texture) : albedo(texture) {}
 
     bool scatter(
-        const ray&, const hit_record& rec, color& attenuation, ray& scattered
+        const ray&, const hit_record& rec, scatter_record& srec
     ) const override {
-        auto scatter_direction = rec.normal + random_unit_vector();
-        if (scatter_direction.near_zero()) {
-            scatter_direction = rec.normal;
-        }
-        scattered = ray{rec.p, scatter_direction};
-        attenuation = albedo->value(rec.u, rec.v, rec.p);
+        srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
+        srec.pdf = std::make_shared<cosine_pdf>(rec.normal);
         return true;
+    }
+
+    double scattering_pdf(
+        const ray& r_in, const hit_record& rec, const ray& scattered
+    ) const override {
+        auto cosine = dot(rec.normal, scattered.direction().normalized());
+        return cosine < 0 ? 0 : cosine / pi;
     }
 
     std::shared_ptr<texture> albedo;

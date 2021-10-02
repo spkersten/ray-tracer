@@ -85,6 +85,28 @@ public:
         return true;
     }
 
+    double pdf_value(const point3& origin, const vec3& direction) const override {
+        hit_record rec;
+        if (!hit(ray{origin, direction}, 0.001, infinity, rec)) {
+            return 0;
+        }
+
+        const auto distance2 = rec.t * rec.t * direction.length_squared();
+        const auto cosine_theta = std::abs(dot(direction, rec.normal)) / direction.length();
+        const auto area = (x1 - x0) * (z1 - z0);
+
+        return distance2 / (cosine_theta * area);
+    }
+
+    vec3 random(const point3& origin) const override {
+        const vec3 p{
+            x0 + (x1 - x0) * random_double(),
+            k,
+            z0 + (z1 - z0) * random_double()
+        };
+        return p - origin;
+    }
+
 private:
     double x0;
     double x1;

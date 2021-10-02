@@ -13,6 +13,7 @@ public:
         return _origin;
     }
 
+    // Not normalized!
     vec3 direction() const {
         return _direction;
     }

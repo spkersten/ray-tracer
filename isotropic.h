@@ -10,11 +10,17 @@ public:
     isotropic(std::shared_ptr<texture> a) : albedo(a) {}
 
     bool scatter(
-        const ray& ray_in, const hit_record& rec, color& attenuation, ray& scattered
+        const ray& ray_in, const hit_record& rec, scatter_record& srec
     ) const override {
-        scattered = ray{rec.p, random_in_unit_sphere()};
-        attenuation = albedo->value(rec.u, rec.v, rec.p);
+        srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
+        srec.pdf = std::make_shared<sphere_pdf>();
         return true;
+    }
+
+    double scattering_pdf(
+        const ray& r_in, const hit_record& rec, const ray& scattered
+    ) const override {
+        return 1 / (4 * pi);
     }
 
 public:

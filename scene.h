@@ -8,7 +8,9 @@
 
 #include "./bvh.h"
 #include "./camera.h"
+#include "./color.h"
 #include "./thread_pool.h"
+#include "./material.h"
 
 class camera_config {
 public:

@@ -119,9 +119,9 @@ public:
 
 public:
     hittable_list world;
+    hittable_list lights;
     camera_config cam;
     std::optional<color> background = std::nullopt;
-    std::shared_ptr<hittable> light;
 
     int image_width = 100;
     double aspect_ratio = 1.0;
@@ -145,7 +145,7 @@ private:
 
             if (rec.material->scatter(r, rec, srec)) {
                 if (srec.pdf != nullptr) {
-                    auto p0 = std::make_shared<hittable_pdf>(*light, rec.p);
+                    auto p0 = std::make_shared<hittable_pdf>(lights, rec.p);
                     mixture_pdf mix_pdf{p0, srec.pdf, 0.1};
 
                     ray scattered{rec.p, mix_pdf.generate()};

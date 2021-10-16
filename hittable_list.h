@@ -18,6 +18,16 @@ public:
 
     bool bounding_box(double time0, double time1, aabb& output_box) const override;
 
+    double pdf_value(const point3& origin, const point3& direction) const override {
+        return std::reduce(objects.begin(), objects.end(), 0.0, [&](double sum, auto obj) {
+            return sum + obj->pdf_value(origin, direction);
+        }) / objects.size();
+    }
+
+    vec3 random(const vec3& origin) const override {
+        return objects[random_int(0, objects.size() - 1)]->random(origin);
+    }
+
 public:
     std::vector<std::shared_ptr<hittable>> objects;
 };

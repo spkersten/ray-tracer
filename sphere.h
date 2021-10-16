@@ -49,6 +49,25 @@ public:
         return true;
     }
 
+    double pdf_value(const point3& origin, const point3& direction) const override {
+        hit_record rec;
+        if (!hit(ray{origin, direction}, 0.001, infinity, rec)) {
+            return 0;
+        }
+
+        auto cos_theta_max = std::sqrt(1 - radius * radius / (center - origin).length_squared());
+        auto solid_angle = 2 * pi * (1 - cos_theta_max);
+        return 1 / solid_angle;
+    }
+
+    vec3 random(const point3& origin) const override {
+        vec3 direction = center - origin;
+        auto distance2 = direction.length_squared();
+        onb uvw;
+        uvw.build_from_w(direction);
+        return uvw.local(random_to_sphere(radius, distance2));
+    }
+
     point3 center;
     double radius;
     std::shared_ptr<material> material;
@@ -61,5 +80,16 @@ private:
 
         u = phi / (2 * pi);
         v = theta / pi;
+    }
+
+    static vec3 random_to_sphere(double radius, double distance2) {
+        // the angle of a ray just touching the sphere
+        auto cos_theta_max = std::sqrt(1 - radius * radius / distance2);
+        auto r1 = random_double();
+        auto r2 = random_double();
+        auto z = 1 + r2 * (cos_theta_max - 1);
+        auto x = std::cos(2 * pi * r1) * std::sqrt(1 - z * z);
+        auto y = std::sin(2 * pi * r1) * std::sqrt(1 - z * z);
+        return {x, y, z};
     }
 };

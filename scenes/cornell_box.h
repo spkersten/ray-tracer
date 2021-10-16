@@ -16,8 +16,9 @@ void empty_cornell_box(scene& scene, bool with_light = true) {
     objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 555, green)); // left
     objects.add(std::make_shared<yz_rect>(0, 555, 0, 555, 0, red)); // right
     if (with_light) {
-        scene.light = std::make_shared<xz_rect>(213, 343, 227, 332, 554, -1, light);
-        objects.add(scene.light);
+        auto lght = std::make_shared<xz_rect>(213, 343, 227, 332, 554, -1, light);
+        scene.lights.add(lght);
+        objects.add(lght);
     }
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 0, white)); // floor
     objects.add(std::make_shared<xz_rect>(0, 555, 0, 555, 555, white)); // ceiling

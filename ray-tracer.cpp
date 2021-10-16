@@ -7,6 +7,7 @@
 #include "./scenes/cornell_box_csg.h"
 #include "./scenes/cornell_box_two_boxes.h"
 #include "./scenes/cornell_smoke.h"
+#include "./scenes/cornell_box_and_glass.h"
 #include "./scenes/earth.h"
 #include "./scenes/lens_setup.h"
 #include "./scenes/random_balls.h"
@@ -42,7 +43,7 @@ int main() {
         simple_light(scene);
         break;
     case 6:
-        cornell_box(scene);
+        cornell_box_and_glass(scene);
         break;
     case 7:
         cornell_smoke(scene);

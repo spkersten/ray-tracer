@@ -80,7 +80,7 @@ public:
                 auto now = std::chrono::system_clock::now();
                 auto time_spend = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
                 auto seconds_spend = time_spend % 60;
-                auto minutes_spend = time_spend / 60;
+                auto minutes_spend = (time_spend / 60) % 60;
                 auto hours_spend = time_spend / (60 * 60);
 
                 std::cerr << std::fixed << std::setprecision(2) << std::setfill('0');
@@ -90,7 +90,7 @@ public:
 
                 auto time_left = static_cast<int>(1.0 * lines_left / (image_height - lines_left) * time_spend);
                 auto seconds_left = time_left % 60;
-                auto minutes_left = time_left / 60;
+                auto minutes_left = (time_left / 60) % 60;
                 auto hours_left = time_left / (60 * 60);
 
                 std::cerr << " -- Estimated time left: " << hours_left

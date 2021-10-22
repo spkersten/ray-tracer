@@ -15,6 +15,7 @@
 #include "./scenes/three_spheres.h"
 #include "./scenes/three_spheres_light.h"
 #include "./scenes/two_perlin_spheres.h"
+#include "./scenes/final.h"
 
 int main() {
     scene scene;
@@ -23,7 +24,7 @@ int main() {
     scene.image_width = 400;
     scene.samples_per_pixel = 400;
 
-    switch (6) {
+    switch (10) {
     case 0:
         three_spheres(scene);
         break;
@@ -53,6 +54,10 @@ int main() {
         break;
     case 9:
         lens_setup(scene);
+        break;
+    case 10:
+        final_scene(scene);
+        break;
     }
 
     scene.render();
